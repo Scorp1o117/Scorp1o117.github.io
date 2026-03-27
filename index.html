@@ -253,6 +253,27 @@
     min-width: 200px;
   }
 
+  /* 点击继续提示 */
+  .click-hint {
+    text-align: center;
+    padding: 12px;
+    color: var(--gold);
+    font-size: 13px;
+    opacity: 0.7;
+    cursor: pointer;
+    animation: pulse 1.5s ease-in-out infinite;
+    user-select: none;
+  }
+
+  .click-hint:hover {
+    opacity: 1;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 0.5; transform: translateY(0); }
+    50% { opacity: 0.9; transform: translateY(2px); }
+  }
+
   .choice-btn {
     padding: 14px 20px;
     background: linear-gradient(135deg, rgba(40,40,90,0.8), rgba(30,30,70,0.8));
@@ -2410,16 +2431,24 @@ function showNextText() {
   // 滚动到底部
   scrollToBottom();
   
-  // 点击继续或自动继续
+  // 点击模式：显示继续提示，等待玩家点击
   if (textIndex < scene.text.length) {
-    setTimeout(() => {
-      if (isShowingText && textIndex <= scene.text.length) {
-        showNextText();
-      }
-    }, 1500);
+    content.innerHTML += '<div class="click-hint" onclick="handleClickContinue()">▼ 点击继续</div>';
+    isShowingText = false; // 暂停，等待点击
+    scrollToBottom();
   } else {
     showChoices(scene);
   }
+}
+
+function handleClickContinue() {
+  // 移除继续提示
+  const hint = document.querySelector('.click-hint');
+  if (hint) hint.remove();
+  // 继续显示下一句
+  isShowingText = true;
+  showNextText();
+}
 }
 
 function showChoices(scene) {
@@ -2491,7 +2520,18 @@ document.addEventListener('click', e => {
 });
 
 // 初始化
-document.addEventListener('DOMContentLoaded', updateUI);
+document.addEventListener('DOMContentLoaded', () => {
+  updateUI();
+  // 点击故事区域继续
+  const storyScroll = document.getElementById('story-scroll');
+  if (storyScroll) {
+    storyScroll.addEventListener('click', (e) => {
+      if (!isShowingText && e.target.closest('.choice-btn') === null && e.target.closest('.click-hint') === null) {
+        handleClickContinue();
+      }
+    });
+  }
+});
 </script>
 </body>
 </html>
